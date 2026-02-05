@@ -2,26 +2,23 @@
   description = "Nix flake for aff4tsk";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    flake-parts.url = "github:hercules-ci/flake-parts";
     aff4-cpp-lite = {
       url = "github:pluskal/aff4-cpp-lite";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, aff4-cpp-lite }:
-    let
+  outputs = inputs@{ self, nixpkgs, flake-parts, aff4-cpp-lite, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
         "aarch64-linux"
       ];
-      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
-    in
-    {
-      packages = forAllSystems (system:
-        let
-          pkgs = import nixpkgs { inherit system; };
 
+      perSystem = { pkgs, ... }:
+        let
           aff4CppLite = pkgs.stdenv.mkDerivation {
             pname = "aff4-cpp-lite";
             version = "unstable";
@@ -43,21 +40,23 @@
           };
         in
         {
-          aff4-cpp-lite = aff4CppLite;
+          packages = {
+            aff4-cpp-lite = aff4CppLite;
 
-          default = pkgs.stdenv.mkDerivation {
-            pname = "aff4tsk";
-            version = "0.1.0";
-            src = self;
-            nativeBuildInputs = [
-              pkgs.cmake
-              pkgs.pkg-config
-            ];
-            buildInputs = [
-              pkgs.sleuthkit
-              aff4CppLite
-            ];
+            default = pkgs.stdenv.mkDerivation {
+              pname = "aff4tsk";
+              version = "0.1.0";
+              src = self;
+              nativeBuildInputs = [
+                pkgs.cmake
+                pkgs.pkg-config
+              ];
+              buildInputs = [
+                pkgs.sleuthkit
+                aff4CppLite
+              ];
+            };
           };
-        });
+        };
     };
 }
