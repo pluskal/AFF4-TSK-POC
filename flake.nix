@@ -24,7 +24,7 @@
             pname = "aff4-cpp-lite";
             version = "unstable";
             src = aff4-cpp-lite;
-            sourceRoot = "source/aff4-cpp-lite";
+            preConfigure = "cd aff4-cpp-lite";
             nativeBuildInputs = [
               pkgs.cmake
               pkgs.pkg-config
